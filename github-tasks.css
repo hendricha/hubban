@@ -1,0 +1,53 @@
+section[role="region"] > header:first-child {
+  background-color: #accd8a;
+}
+
+[data-type="list"] header {
+  border-color: #accd8a;
+  color: #accd8a;
+}
+
+.issue.number {
+  padding-top: 0.1em;
+  margin: 0 1em;
+  border-radius: 1em;
+  font-size: 0.7em;
+  min-width:  3em;
+  height: 1.5em;
+  display: inline-block;
+  text-align: center;
+  line-height: normal;
+}
+
+.kanban.column {
+  width: 30%;
+  max-width: 300px;
+  margin-right: 2em;
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+}
+.kanban.column ul {
+  width: 100%;
+  height: 100%;
+}
+
+#task-list article {
+  overflow-x: scroll;
+  white-space: nowrap !important;
+}
+
+.half.width {
+  width: 49%
+}
+
+.flying.task {
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 1px 1px 5px grey;
+  z-index: 10000;
+}
+
+li.progress {
+  text-align: center;
+}
