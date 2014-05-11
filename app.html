@@ -265,29 +265,46 @@
       console.log(issues);
       window.issues = filterForBugsAndEnhancementsIfNeeded(issues);
       window.issues.forEach(function(issue) {
-        retrieveTasksForIssue(issue);
-        createNodeForIssue(issue);
+        try {
+          retrieveTasksForIssue(issue);
+          createNodeForIssue(issue);
+        } catch(e) {
+          console.log(e);
+          alert("Could not parse tasks belonging to issue.");
+        }
       });
       addNotSignedInMessageIfNeeded();
     };
 
     var retrieveTasksForIssue = function(issue) {
-      issue.tasks = issue.tasks || [{
-        name: "Run around in circles",
-        description: "Right round, round round",
-        users: ["hendricha"],
-        progress: 2
-      }, {
-        name: "Write code",
-        description: "Hello world, or something",
-        users: ["hendricha"],
-        progress: 2
-      }, {
-        name: "Add option for multiple whatevers",
-        description: "Including ... well whatever...",
-        users: ["hendricha", "torvalds"],
-        progress: 0
-      }]
+      var tasksMarkdown = issue.body.split(taskDelimiter)[1] || "";
+      issue.tasks = [];
+
+      var stateEnum = { NOT_IN_ISSUE: 0, AFTER_TITLE: 1, IN_TICKBOXES: 2 };
+      var state = stateEnum.NOT_IN_ISSUE;
+      var task = null;
+
+      tasksMarkdown.split("\n").forEach(function(line) {
+        if (state == stateEnum.NOT_IN_ISSUE && line.substring(0,4) == "### ") {
+          task = { name: line.substring(4), description: "" };
+          state = stateEnum.AFTER_TITLE;
+        } else if (state == stateEnum.AFTER_TITLE || state == stateEnum.IN_TICKBOXES) {
+          if (line.substring(0,3) == "* [") {
+            state = stateEnum.IN_TICKBOXES;
+            if (line[3] == 'x') {
+              task.progress = columnTitles.indexOf(line.substring(6));
+            }
+          } else if (line.length == 0 && state == stateEnum.IN_TICKBOXES) {
+            task.description.trim();
+            issue.tasks.push(task);
+            state = stateEnum.NOT_IN_ISSUE;
+          } else if (state == stateEnum.AFTER_TITLE) {
+            task.description += line + "\n";
+          } else {
+            throw new Error(issue);
+          }
+        }
+      });
     };
 
     var createNodeForIssue = function(issue) {
