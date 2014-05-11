@@ -246,6 +246,7 @@
           } : null,
           url: 'https://api.github.com/repos/' + repoAccount + '/' + repoName + '/issues' + issueNumber,
           dataType: "json",
+          cache: false,
           data : patchedIssue ? JSON.stringify(patchedIssue) : null,
           type : patchedIssue ? 'PATCH' : 'GET',
           xhrFields: {
