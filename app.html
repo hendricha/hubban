@@ -452,6 +452,11 @@
       $('#task-details .back.button').click();
     }
 
+    var clearAuthenticationInfo = function(){
+      encodedUsernameAndPassword = null;
+      loadIssues();
+    }
+
     var signIn = function(){
       encodedUsernameAndPassword = btoa($("#username").val() + ":" + $("#password").val());
       loadIssues();
@@ -479,9 +484,12 @@
         <h2>Authentication</h2>
         <ul>
           <li>
-            <input type="text" placeholder="GitHub ussername" id="username" required="">
-            <input type="password" placeholder="Password" id="password" required="">
-            <button type="reset" onClick="signIn();">Sign in</button>
+            <form>
+              <input type="text" placeholder="GitHub ussername" id="username" required="">
+              <input type="password" placeholder="Password" id="password" required="">
+              <button class="half width" type="reset" onClick="clearAuthenticationInfo();">Clear</button>
+              <button class="half width" onClick="signIn();">Sign in</button>
+            </form>
           </li>
           <li>Note: HubBan at the moment stores your username and password in memory. Use it with care. (OAuth is planned.)</li>
         </ul>
