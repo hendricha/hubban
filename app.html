@@ -231,7 +231,11 @@
       $(".issue.list h1 em").text(repoAccount + '/' + repoName);
       $(".add.issue").attr("href", "https://github.com/" + repoAccount + '/' + repoName + "/issues/new")
 
-      setupTaskDetailsPage();
+      if (!encodedUsernameAndPassword) {
+        $('#task-list .add.task').hide();
+      } else {
+        setupTaskDetailsPage();
+      }
     }
 
     var callGitHub = function(successCallback, issueNumber, patchedIssue) {
@@ -264,6 +268,7 @@
         retrieveTasksForIssue(issue);
         createNodeForIssue(issue);
       });
+      addNotSignedInMessageIfNeeded();
     };
 
     var retrieveTasksForIssue = function(issue) {
@@ -296,7 +301,7 @@
       addPageFlippingEvents(node.find("a"), $('[data-position="current"]'), $('#task-list'));
       addTaskListGenerationEvent(node.find("a"), issue);
 
-      node.prependTo($(".issue.list ul"));
+      node.prependTo(".issue.list ul");
     };
 
     var filterForBugsAndEnhancementsIfNeeded = function(issues) {
@@ -368,6 +373,10 @@
         node.appendTo($('#task-list article .kanban.column ul')[task.progress]);
       });
 
+      if (!encodedUsernameAndPassword) {
+        return;
+      }
+
       $('#task-list article ul li').width($('#task-list article ul li').width());
       $('#task-list article ul li').pep({
         droppable: '#task-list article ul',
@@ -411,6 +420,7 @@
     };
 
     var setupTaskDetailsPage = function(){
+      $('#task-list .add.task').show();
       addPageFlippingEvents($('#task-list .add.task'), $('#task-list'), $('#task-details'));
       $('#task-details .back.button').on("click", function() {
         resetTaskDetails();
@@ -490,6 +500,12 @@
       });
 
       return result;
+    }
+
+    var addNotSignedInMessageIfNeeded = function() {
+      if (!encodedUsernameAndPassword) {
+        $("<li>Tasks can't be edited without signing in.</li>").appendTo(".issue.list ul");
+      }
     }
 
     var clearAuthenticationInfo = function(){
