@@ -220,33 +220,41 @@
       columnTitles = ["Backlog", "In progress", "Under review", "Finished"],
       encodedUsernameAndPassword = null,
       repoAccount = "hendricha",
-      repoName = "sandbox";
+      repoName = "sandbox",
+      taskDelimiter = "\n\n[Tasks]:#\n\n";
 
     var loadIssues = function() {
       $(location).attr('href',"#");
-      $.ajax({
-          beforeSend: encodedUsernameAndPassword ? function (xhr) {
-            xhr.setRequestHeader ("Authorization", "Basic " + encodedUsernameAndPassword );
-          } : null,
-          url: 'https://api.github.com/repos/' + repoAccount + '/' + repoName + '/issues',
-          dataType: "json",
-          xhrFields: {
-              mozSystem: true
-          },
-          success: addIssuesToList,
-          error:function(object,status,errortxt){
-              alert("Could not retrive issues from GitHub.");
-              console.log(errortxt);
-          }
-      });
-      console.log("Ajax requested");
+      callGitHub(addIssuesToList);
 
       $(".issue.list ul").empty();
       $(".issue.list h1 em").text(repoAccount + '/' + repoName);
       $(".add.issue").attr("href", "https://github.com/" + repoAccount + '/' + repoName + "/issues/new")
 
       setupTaskDetailsPage();
-   }
+    }
+
+    var callGitHub = function(successCallback, issueNumber, patchedIssue) {
+      issueNumber = issueNumber ? "/" + issueNumber : "";
+      $.ajax({
+          beforeSend: encodedUsernameAndPassword ? function (xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic " + encodedUsernameAndPassword );
+          } : null,
+          url: 'https://api.github.com/repos/' + repoAccount + '/' + repoName + '/issues' + issueNumber,
+          dataType: "json",
+          data : patchedIssue ? JSON.stringify(patchedIssue) : null,
+          type : patchedIssue ? 'PATCH' : 'GET',
+          xhrFields: {
+              mozSystem: true
+          },
+          success: successCallback,
+          error:function(object,status,errortxt){
+              alert("There was an error communicating with GitHub.");
+              console.log(errortxt);
+          }
+      });
+      console.log("Ajax requested");
+    }
 
     var addIssuesToList = function(issues) {
       $("li.progress").hide();
@@ -373,6 +381,7 @@
           issue.tasks[$(obj.el).data("task-number")].progress = this.activeDropRegions[0].data("column-number");
 
           renderTasksToColumns(issue);
+          updateRemoteIssue();
         },
         revert: true,
         revertIf: function(ev, obj){
@@ -408,7 +417,7 @@
       });
       resetTaskDetails();
 
-      $('#task-save').on("click", function() {
+      $('#task-save').off().on("click", function() {
         var task = (currentTaskNumber !== null) ? currentIssue.tasks[currentTaskNumber] : {
           users: [],
           progress: 0
@@ -423,6 +432,8 @@
 
         resetTaskDetails();
         closeTaskDetails();
+
+        updateRemoteIssue();
 
         renderTasksToColumns(currentIssue);
       });
@@ -452,9 +463,40 @@
       $('#task-details .back.button').click();
     }
 
+    updateRemoteIssue = function(){
+      if (!encodedUsernameAndPassword) {
+        return;
+      }
+
+      var patchedIssue = {
+        body: getTasklesBody(currentIssue) + taskDelimiter + markdownifyTasks(currentIssue.tasks),
+      };
+      callGitHub(function() {
+        console.log("Updated issue on remote issue tracker.")
+      }, currentIssue.number, patchedIssue);
+    }
+
+    getTasklesBody = function(issue){
+      return issue.body ? issue.body.split(taskDelimiter)[0] : "";
+    }
+
+    markdownifyTasks = function(tasks){
+      var result = "";
+      tasks.forEach(function(task) {
+        result += "\n### " + task.name + "\n" + task.description + "\n";
+        columnTitles.forEach(function(title, index) {
+          result += "* [" + (task.progress >= index ? "x" : " ") + "] " + title + '\n';
+        });
+      });
+
+      return result;
+    }
+
     var clearAuthenticationInfo = function(){
       encodedUsernameAndPassword = null;
-      loadIssues();
+      loadIssues(function() {
+        console.log("Updated issue on GitHub.");
+      }, "/" + currentIssue.id + "?&body=");
     }
 
     var signIn = function(){
