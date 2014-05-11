@@ -217,12 +217,18 @@
       currentTaskNumber = null,
       relevantLabels = ["bug", "enhancement"],
       onlyRelevantLabels = true,
-      columnTitles = ["Backlog", "In progress", "Under review", "Finished"];
+      columnTitles = ["Backlog", "In progress", "Under review", "Finished"],
+      encodedUsernameAndPassword = null,
+      repoAccount = "hendricha",
+      repoName = "sandbox";
 
-
-    $( document ).ready(function() {
+    var loadIssues = function() {
+      $(location).attr('href',"#");
       $.ajax({
-          url: 'https://api.github.com/repos/hendricha/sandbox/issues',
+          beforeSend: encodedUsernameAndPassword ? function (xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic " + encodedUsernameAndPassword );
+          } : null,
+          url: 'https://api.github.com/repos/' + repoAccount + '/' + repoName + '/issues',
           dataType: "json",
           xhrFields: {
               mozSystem: true
@@ -235,8 +241,9 @@
       });
       console.log("Ajax requested");
 
+      $(".issue.list ul").empty();
       setupTaskDetailsPage();
-   });
+   }
 
     var addIssuesToList = function(issues) {
       $("li.progress").hide();
@@ -441,6 +448,19 @@
     var closeTaskDetails = function(){
       $('#task-details .back.button').click();
     }
+
+    var signIn = function(){
+      encodedUsernameAndPassword = btoa($("#username").val() + ":" + $("#password").val());
+      loadIssues();
+    }
+
+    var switchRepo = function(){
+      repoAccount = $("#repoAccount").val();
+      repoName = $("#repoName").val();
+      loadIssues();
+    }
+
+    $( document ).ready(loadIssues);
   </script>
 </head>
 <body>
@@ -448,22 +468,36 @@
     <section data-type="sidebar">
       <header>
         <menu type="toolbar">
-          <a href="#">Done</a>
+          <a href="#">Close</a>
         </menu>
-        <h1>Drawer demo</h1>
+        <h1>Settings</h1>
       </header>
       <nav>
+        <h2>Authentication</h2>
         <ul>
-          <li><a href="#">item 1</a></li>
-          <li><a href="#">item 2</a></li>
-          <li><a href="#">item 3</a></li>
+          <li>
+            <input type="text" placeholder="GitHub ussername" id="username" required="">
+            <input type="password" placeholder="Password" id="password" required="">
+            <button type="reset" onClick="signIn();">Sign in</button>
+          </li>
+          <li>Note: HubBan at the moment stores your username and password in memory. Use it with care. (OAuth is planned.)</li>
         </ul>
-        <h2>This is a subtitle</h2>
+        <h2>Repository</h2>
         <ul>
-          <li><a href="#">item 4</a></li>
-          <li><a href="#">item 5</a></li>
-          <li><a href="#">item 6</a></li>
+          <li>
+            <input class="half width float left" type="text" placeholder="Account name" id="repoAccount" value="hendricha" required="">
+            <input class="half width float left" type="text" placeholder="Reposiroy name" id="repoName" value="sandbox" required="">
+            <button type="reset" onClick="switchRepo();">Switch repo</button>
+          </li>
         </ul>
+        <h2>About HubBan</h2>
+        <ul>
+          <li>Created by: <a href="mailto:hendricha@gmail.com">Hendrich Attila</a></li>
+          <li>Email: <a href="mailto:hendricha@gmail.com">hendricha@gmail.com</a></li>
+          <li>Fork on GitHub: <a href="https://github.com/hendricha/hubban" target="_blank">github.com/hendricha/hubban</a></li>
+          <li>Made for a university project at Óbuda University. (Yep, we have a Firefox OS class there.)<a href="http://uni-obuda.hu/" target="_blank"><img src="http://uni-obuda.hu/sites/all/themes/genesis_uni/logo-en.png" class="oe logo" alt="Óbuda University"></a></li>
+          <li class="reserved space"></li>
+      </ul>
       </nav>
     </section>
 
