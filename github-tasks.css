@@ -64,3 +64,8 @@ li.progress {
 .reserved.space {
   height: 6em;
 }
+
+header .action-icon:before {
+  top: 1rem;
+  right: 1rem;
+}
