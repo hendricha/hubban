@@ -466,7 +466,7 @@
         renderTasksToColumns(currentIssue);
       });
 
-      $('#task-delete').on("click", function() {
+      $('#task-delete').off().on("click", function() {
         if (!confirm("Are you sure you want to delete this task?")) {
           return;
         }
@@ -475,6 +475,8 @@
 
         resetTaskDetails();
         closeTaskDetails();
+        
+        updateRemoteIssue();
 
         renderTasksToColumns(currentIssue);
       });
